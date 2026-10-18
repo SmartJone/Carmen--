@@ -38,7 +38,7 @@ body {
 }
 
 #root {
-  max-width: 960px;
+  max-width: 1440px;
   margin: 0 auto;
   padding: 32px 20px 64px;
 }
@@ -62,12 +62,6 @@ button {
   font-size: 11px;
   letter-spacing: 0.08em;
   color: var(--indigo);
-}
-
-.app {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
 }
 
 .app-title {
@@ -133,23 +127,24 @@ button {
   font-family: var(--mono);
   font-size: 22px;
   line-height: 1.9;
-  word-break: break-word;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
 }
 
 .char {
-  border-radius: 4px;
-  padding: 0 1px;
+  border-radius: 3px;
+  padding: 0;
 }
 
 .char-correct {
-  color: var(--green);
-  background: rgba(126, 211, 33, 0.22);
+  color: #26824a;
+  background: rgba(126, 211, 33, 0.24);
 }
 
 .char-wrong {
-  color: #fff;
-  background: var(--red);
-  text-decoration: underline wavy #fff;
+  color: #b3272c;
+  background: rgba(227, 69, 74, 0.16);
+  text-decoration: underline wavy #e07a7e;
   text-underline-offset: 4px;
 }
 
@@ -159,30 +154,41 @@ button {
   box-shadow: 0 3px 0 var(--orange);
 }
 
-/* 输入区 */
-.typing-input {
+/* 输入区：与原文同款显示，textarea 透明覆盖实现输入 */
+.input-stack {
+  position: relative;
+}
+
+.input-ghost {
+  margin: 0;
+}
+
+.input-layer {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  font-family: var(--mono);
-  font-size: 20px;
-  padding: 14px 16px;
-  border: 3px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--panel);
-  color: var(--text);
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
   outline: none;
-  box-shadow: inset 3px 3px 0 rgba(44, 36, 64, 0.08);
+  resize: none;
+  overflow: hidden;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--indigo);
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
 }
 
-.typing-input:focus {
-  border-color: var(--indigo);
-  box-shadow:
-    inset 3px 3px 0 rgba(44, 36, 64, 0.08),
-    0 0 0 3px var(--accent-soft);
+.input-stack:focus-within {
+  outline: 3px solid var(--indigo);
+  outline-offset: 6px;
+  border-radius: 6px;
 }
 
-.typing-input:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.input-stack.is-disabled {
+  opacity: 0.55;
 }
 
 /* 按钮 */
@@ -230,55 +236,105 @@ button {
   background: var(--lime);
 }
 
+.btn-pause {
+  background: var(--yellow);
+}
+
+.btn-pause:hover:not(:disabled) {
+  background: var(--lime);
+}
+
 /* 结果卡片 */
 .result-card {
   text-align: center;
   background: #fffbe8;
 }
 
-.result-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 16px;
+.result-badge {
+  font-family: var(--pixel);
+  font-size: 56px;
+  line-height: 1;
+  margin: 8px 0 14px;
+  color: var(--orange);
+  text-shadow: 4px 4px 0 var(--border);
 }
 
-.result-item {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.result-badge.rank-S {
+  color: var(--lime);
+}
+.result-badge.rank-B {
+  color: var(--indigo);
+}
+.result-badge.rank-C {
+  color: var(--text-muted);
+}
+
+.result-msg {
+  margin: 0 0 18px;
+  font-size: 16px;
+  font-weight: 700;
 }
 
 /* 模拟键盘 */
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.app {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.layout-wide {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 680px) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.side-kb {
+  position: sticky;
+  top: 20px;
+}
+
 .kb-card {
   background: #b9b3d9;
+}
+
+.side-kb .kb-card {
+  padding: 14px 12px;
 }
 
 .keyboard {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  align-items: center;
+  gap: 6px;
 }
 
 .kb-row {
   display: flex;
-  gap: 8px;
-  justify-content: center;
+  gap: 6px;
 }
 
 .kb-key {
-  min-width: 42px;
-  height: 42px;
-  padding: 0 8px;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 38px;
+  padding: 0 2px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-family: var(--pixel);
-  font-size: 12px;
+  font-size: 11px;
   text-transform: uppercase;
+  color: var(--border);
   background: var(--panel);
-  color: var(--text);
   border: 3px solid var(--border);
   border-radius: 8px;
   box-shadow: 0 4px 0 var(--border);
@@ -288,9 +344,30 @@ button {
     background 60ms ease;
 }
 
+/* 指法配色（柔和） */
+.finger-l-pinky,
+.finger-r-pinky {
+  background: #ffc9d8;
+}
+.finger-l-ring,
+.finger-r-ring {
+  background: #ffdcc2;
+}
+.finger-l-middle,
+.finger-r-middle {
+  background: #d9f7c4;
+}
+.finger-l-index,
+.finger-r-index {
+  background: #c6ecff;
+}
+.finger-thumb {
+  background: #e6e6f2;
+}
+
 .kb-next {
   background: var(--yellow);
-  animation: kb-blink 900ms steps(2, start) infinite;
+  animation: kb-pulse 700ms ease-in-out infinite;
 }
 
 .kb-active {
@@ -299,37 +376,61 @@ button {
   box-shadow: 0 0 0 var(--border);
 }
 
-.kb-wide {
-  min-width: 66px;
-  font-size: 9px;
+.kb-row-space {
+  margin-top: 2px;
 }
 
-.kb-inert {
-  opacity: 0.6;
+.kb-row-space .kb-key {
+  flex: 0 0 62%;
 }
 
-.kb-space {
-  width: 300px;
+.kb-space,
+.kb-row-space .kb-key {
   text-transform: none;
 }
 
-.kb-hint {
-  margin: 14px 0 0;
+.kb-tip {
+  margin: 12px 0 0;
   text-align: center;
   font-size: 12px;
   font-weight: 700;
-  color: var(--text-muted);
+  color: var(--border);
 }
 
-@keyframes kb-blink {
+.kb-tip b {
+  color: var(--indigo);
+}
+
+.kb-streak {
+  margin: 6px 0 0;
+  text-align: center;
+  font-family: var(--pixel);
+  font-size: 11px;
+  color: var(--orange);
+  animation: streak-pop 200ms ease-out;
+}
+
+@keyframes kb-pulse {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
   50% {
-    background: #fff2a8;
+    transform: translateY(-3px) scale(1.08);
+  }
+}
+
+@keyframes streak-pop {
+  from {
+    transform: scale(0.7);
+  }
+  to {
+    transform: scale(1);
   }
 }
 
 @media (max-width: 640px) {
-  .stats-bar,
-  .result-grid {
+  .stats-bar {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -337,24 +438,19 @@ button {
     font-size: 24px;
   }
 
+  .result-badge {
+    font-size: 40px;
+  }
+
   .stat-value {
     font-size: 14px;
   }
 
   .kb-key {
-    min-width: 26px;
-    height: 32px;
-    font-size: 9px;
+    height: 30px;
+    font-size: 8px;
     border-width: 2px;
     box-shadow: 0 3px 0 var(--border);
-  }
-
-  .kb-wide {
-    min-width: 42px;
-    font-size: 7px;
-  }
-
-  .kb-space {
-    width: 180px;
+    border-radius: 6px;
   }
 }

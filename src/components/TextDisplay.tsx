@@ -1,13 +1,16 @@
+import type { RefObject } from 'react'
+
 interface TextDisplayProps {
   text: string
   typed: string
+  textRef?: RefObject<HTMLParagraphElement | null>
 }
 
-export function TextDisplay({ text, typed }: TextDisplayProps) {
+export function TextDisplay({ text, typed, textRef }: TextDisplayProps) {
   return (
     <section className="card">
       <h2 className="section-title">原文</h2>
-      <p className="text-display">
+      <p className="text-display" ref={textRef}>
         {text.split('').map((ch, i) => {
           let cls = 'char'
           if (i < typed.length) {

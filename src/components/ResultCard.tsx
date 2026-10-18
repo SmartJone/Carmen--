@@ -1,30 +1,26 @@
 interface ResultCardProps {
   wpm: number
   accuracy: number
-  errors: number
-  time: string
   onReset: () => void
 }
 
-export function ResultCard({ wpm, accuracy, errors, time, onReset }: ResultCardProps) {
-  const items = [
-    { label: '打字速度', value: `${wpm} WPM` },
-    { label: '准确率', value: `${accuracy}%` },
-    { label: '错误数', value: String(errors) },
-    { label: '用时', value: time },
-  ]
+function grade(wpm: number, accuracy: number) {
+  if (accuracy >= 98 && wpm >= 60) return { rank: 'S', msg: '职业级手速！' }
+  if (accuracy >= 95 && wpm >= 40) return { rank: 'A', msg: '又快又稳！' }
+  if (accuracy >= 90 && wpm >= 25) return { rank: 'B', msg: '节奏不错，继续保持' }
+  return { rank: 'C', msg: '稳扎稳打，慢慢提速' }
+}
+
+export function ResultCard({ wpm, accuracy, onReset }: ResultCardProps) {
+  const g = grade(wpm, accuracy)
 
   return (
     <section className="card result-card">
       <h2 className="section-title">本次结果</h2>
-      <div className="result-grid">
-        {items.map((item) => (
-          <div className="result-item" key={item.label}>
-            <span className="stat-value">{item.value}</span>
-            <span className="stat-label">{item.label}</span>
-          </div>
-        ))}
-      </div>
+      <div className={`result-badge rank-${g.rank}`}>{g.rank}</div>
+      <p className="result-msg">
+        {g.msg} · {wpm} WPM
+      </p>
       <button className="btn btn-primary" onClick={onReset}>
         再来一次
       </button>

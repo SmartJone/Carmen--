@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-export type Phase = 'idle' | 'typing' | 'finished'
+export type Phase = 'idle' | 'typing' | 'paused' | 'finished'
 
 function formatTime(ms: number) {
   const total = Math.floor(ms / 1000)
@@ -12,32 +12,57 @@ function formatTime(ms: number) {
 export function useTypingEngine(text: string) {
   const [phase, setPhase] = useState<Phase>('idle')
   const [typed, setTyped] = useState('')
-  const [startedAt, setStartedAt] = useState<number | null>(null)
   const [elapsedMs, setElapsedMs] = useState(0)
+  const accumulatedRef = useRef(0)
+  const segmentStartRef = useRef<number | null>(null)
   const timerRef = useRef<number | null>(null)
 
+  const currentElapsed = useCallback(() => {
+    const running =
+      segmentStartRef.current === null
+        ? 0
+        : Date.now() - segmentStartRef.current
+    return accumulatedRef.current + running
+  }, [])
+
   useEffect(() => {
-    if (phase !== 'typing' || startedAt === null) return
+    if (phase !== 'typing') return
     timerRef.current = window.setInterval(() => {
-      setElapsedMs(Date.now() - startedAt)
+      setElapsedMs(currentElapsed())
     }, 200)
     return () => {
       if (timerRef.current !== null) window.clearInterval(timerRef.current)
     }
-  }, [phase, startedAt])
+  }, [phase, currentElapsed])
 
   const start = useCallback(() => {
     if (phase !== 'idle') return
-    setStartedAt(Date.now())
+    accumulatedRef.current = 0
+    segmentStartRef.current = Date.now()
     setElapsedMs(0)
+    setPhase('typing')
+  }, [phase])
+
+  const pause = useCallback(() => {
+    if (phase !== 'typing') return
+    accumulatedRef.current = currentElapsed()
+    segmentStartRef.current = null
+    setElapsedMs(accumulatedRef.current)
+    setPhase('paused')
+  }, [phase, currentElapsed])
+
+  const resume = useCallback(() => {
+    if (phase !== 'paused') return
+    segmentStartRef.current = Date.now()
     setPhase('typing')
   }, [phase])
 
   const reset = useCallback(() => {
     if (timerRef.current !== null) window.clearInterval(timerRef.current)
+    accumulatedRef.current = 0
+    segmentStartRef.current = null
     setPhase('idle')
     setTyped('')
-    setStartedAt(null)
     setElapsedMs(0)
   }, [])
 
@@ -48,11 +73,13 @@ export function useTypingEngine(text: string) {
       setTyped(next)
       if (next.length === text.length) {
         if (timerRef.current !== null) window.clearInterval(timerRef.current)
-        setElapsedMs(startedAt === null ? 0 : Date.now() - startedAt)
+        accumulatedRef.current = currentElapsed()
+        segmentStartRef.current = null
+        setElapsedMs(accumulatedRef.current)
         setPhase('finished')
       }
     },
-    [phase, startedAt, text],
+    [phase, text, currentElapsed],
   )
 
   const { correctCount, errorCount } = useMemo(() => {
@@ -63,6 +90,15 @@ export function useTypingEngine(text: string) {
       else errors++
     }
     return { correctCount: correct, errorCount: errors }
+  }, [typed, text])
+
+  const streak = useMemo(() => {
+    let n = 0
+    for (let i = typed.length - 1; i >= 0; i--) {
+      if (typed[i] === text[i]) n++
+      else break
+    }
+    return n
   }, [typed, text])
 
   const accuracy =
@@ -76,10 +112,13 @@ export function useTypingEngine(text: string) {
     typed,
     correctCount,
     errorCount,
+    streak,
     accuracy,
     wpm,
     timeString: formatTime(elapsedMs),
     start,
+    pause,
+    resume,
     reset,
     handleChange,
   }

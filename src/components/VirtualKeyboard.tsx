@@ -1,74 +1,85 @@
-import { useEffect, useMemo, useState } from 'react'
+import {
+  FINGER_NAMES,
+  FULL_ROWS,
+  LEFT_ROWS,
+  RIGHT_ROWS,
+  SPACE_KEY,
+  fingerOfChar,
+  keyIdOf,
+  type KeyDef,
+} from '../data/keyboard'
+import { usePressedKey } from '../hooks/usePressedKey'
 
-const ROWS = [
-  ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '='],
-  ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\'],
-  ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', "'"],
-  ['z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/'],
-]
-
-function keyIdOf(ch: string): string | null {
-  if (ch === ' ') return 'space'
-  if (ch.length !== 1) return null
-  return ch.toLowerCase()
-}
+type Side = 'left' | 'right' | 'full'
 
 interface VirtualKeyboardProps {
+  side?: Side
   nextChar: string | null
+  streak: number
 }
 
-export function VirtualKeyboard({ nextChar }: VirtualKeyboardProps) {
-  const [pressed, setPressed] = useState<string | null>(null)
+const ROWS: Record<Side, KeyDef[][]> = {
+  left: LEFT_ROWS,
+  right: RIGHT_ROWS,
+  full: FULL_ROWS,
+}
 
-  const allKeys = useMemo(
-    () => new Set([...ROWS.flat(), 'space', 'Shift']),
-    [],
-  )
+const TITLES: Record<Side, string> = {
+  left: '左手',
+  right: '右手',
+  full: '键盘',
+}
 
-  const nextKey = nextChar !== null ? keyIdOf(nextChar) : null
+export function VirtualKeyboard({
+  side = 'full',
+  nextChar,
+  streak,
+}: VirtualKeyboardProps) {
+  const pressedKey = usePressedKey()
+  const nextKey = nextChar === null ? null : keyIdOf(nextChar)
+  const nextFinger = nextChar === null ? null : fingerOfChar(nextChar)
 
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.repeat) return
-      const id = keyIdOf(e.key)
-      if (id && allKeys.has(id)) setPressed(id)
-    }
-    const onKeyUp = () => setPressed(null)
-
-    window.addEventListener('keydown', onKeyDown)
-    window.addEventListener('keyup', onKeyUp)
-    return () => {
-      window.removeEventListener('keydown', onKeyDown)
-      window.removeEventListener('keyup', onKeyUp)
-    }
-  }, [allKeys])
-
-  const cls = (key: string) => {
-    if (pressed === key) return 'kb-key kb-active'
-    if (nextKey === key) return 'kb-key kb-next'
-    return 'kb-key'
+  const keyClass = (key: KeyDef) => {
+    const cls = ['kb-key', `finger-${key.finger}`]
+    if (pressedKey === key.id) cls.push('kb-active')
+    else if (nextKey === key.id) cls.push('kb-next')
+    return cls.join(' ')
   }
 
+  const renderSpace = () => (
+    <div className="kb-row kb-row-space">
+      <span className={keyClass(SPACE_KEY)}>{SPACE_KEY.label}</span>
+    </div>
+  )
+
   return (
-    <section className="card kb-card">
-      <h2 className="section-title">键盘</h2>
+    <section className={`card kb-card kb-${side}`}>
+      <h2 className="section-title">{TITLES[side]}</h2>
+
       <div className="keyboard">
-        {ROWS.map((row, r) => (
-          <div className={`kb-row kb-row-${r}`} key={r}>
-            {r === 3 && <span className="kb-key kb-wide kb-inert">Shift</span>}
+        {ROWS[side].map((row, r) => (
+          <div className="kb-row" key={r}>
             {row.map((key) => (
-              <span className={cls(key)} key={key}>
-                {key}
+              <span className={keyClass(key)} key={key.id}>
+                {key.label}
               </span>
             ))}
-            {r === 3 && <span className="kb-key kb-wide kb-inert">Shift</span>}
           </div>
         ))}
-        <div className="kb-row">
-          <span className={cls('space') + ' kb-space'}>space</span>
-        </div>
+        {renderSpace()}
       </div>
-      <p className="kb-hint">黄色 = 下一个要按的键，按键时会亮起</p>
+
+      <p className="kb-tip">
+        {nextFinger ? (
+          <>
+            用 <b>{FINGER_NAMES[nextFinger]}</b> 敲
+          </>
+        ) : (
+          '点击开始'
+        )}
+      </p>
+
+      {streak > 1 && <p className="kb-streak">连击 x{streak}</p>}
     </section>
   )
 }
