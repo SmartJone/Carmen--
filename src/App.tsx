@@ -24,7 +24,7 @@ function App() {
 
   return (
     <main className="app">
-      <h1 className="app-title">打字练习</h1>
+      <h1 className="app-title">改善二指禅</h1>
 
       <StatsBar
         accuracy={`${engine.accuracy}%`}

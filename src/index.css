@@ -72,12 +72,13 @@ button {
 
 .app-title {
   margin: 0;
+  text-align: center;
   font-family: var(--pixel);
-  font-size: 26px;
-  color: var(--indigo);
+  font-size: 40px;
+  color: var(--border);
   text-shadow:
     3px 3px 0 var(--yellow),
-    6px 6px 0 var(--border);
+    6px 6px 0 var(--indigo);
   letter-spacing: 0.04em;
 }
 
@@ -333,7 +334,7 @@ button {
   }
 
   .app-title {
-    font-size: 18px;
+    font-size: 24px;
   }
 
   .stat-value {
