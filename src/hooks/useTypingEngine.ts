@@ -13,6 +13,7 @@ export function useTypingEngine(text: string) {
   const [phase, setPhase] = useState<Phase>('idle')
   const [typed, setTyped] = useState('')
   const [elapsedMs, setElapsedMs] = useState(0)
+  const [isComposing, setIsComposing] = useState(false)
   const accumulatedRef = useRef(0)
   const segmentStartRef = useRef<number | null>(null)
   const timerRef = useRef<number | null>(null)
@@ -41,6 +42,7 @@ export function useTypingEngine(text: string) {
     segmentStartRef.current = Date.now()
     setElapsedMs(0)
     setPhase('typing')
+    setTyped('')
   }, [phase])
 
   const pause = useCallback(() => {
@@ -64,14 +66,19 @@ export function useTypingEngine(text: string) {
     setPhase('idle')
     setTyped('')
     setElapsedMs(0)
+    setIsComposing(false)
   }, [])
 
   const handleChange = useCallback(
     (value: string) => {
       if (phase !== 'typing') return
+      if (isComposing) {
+        setTyped(value)
+        return
+      }
       const next = value.slice(0, text.length)
       setTyped(next)
-      if (next.length === text.length) {
+      if (next.length === text.length && next === text) {
         if (timerRef.current !== null) window.clearInterval(timerRef.current)
         accumulatedRef.current = currentElapsed()
         segmentStartRef.current = null
@@ -79,8 +86,16 @@ export function useTypingEngine(text: string) {
         setPhase('finished')
       }
     },
-    [phase, text, currentElapsed],
+    [phase, text, currentElapsed, isComposing],
   )
+
+  const handleCompositionStart = useCallback(() => {
+    setIsComposing(true)
+  }, [])
+
+  const handleCompositionEnd = useCallback((_e?: unknown) => {
+    setIsComposing(false)
+  }, [])
 
   const { correctCount, errorCount } = useMemo(() => {
     let correct = 0
@@ -121,5 +136,7 @@ export function useTypingEngine(text: string) {
     resume,
     reset,
     handleChange,
+    handleCompositionStart,
+    handleCompositionEnd,
   }
 }

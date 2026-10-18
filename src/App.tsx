@@ -4,13 +4,14 @@ import { InputArea } from './components/InputArea'
 import { VirtualKeyboard } from './components/VirtualKeyboard'
 import { StatsBar } from './components/StatsBar'
 import { Controls } from './components/Controls'
-import { ResultCard } from './components/ResultCard'
-import { SAMPLE_TEXT } from './data/texts'
+import { ResultCard, type RunRecord } from './components/ResultCard'
+import { getRandomText } from './data/texts'
 import { useTypingEngine } from './hooks/useTypingEngine'
 import { useMediaQuery } from './hooks/useMediaQuery'
 
 function App() {
-  const engine = useTypingEngine(SAMPLE_TEXT)
+  const [currentText, setCurrentText] = useState(getRandomText)
+  const engine = useTypingEngine(currentText)
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
   const wide = useMediaQuery('(min-width: 1180px)')
 
@@ -29,19 +30,40 @@ function App() {
     const ro = new ResizeObserver(update)
     ro.observe(el)
     return () => ro.disconnect()
-  }, [])
+  }, [currentText])
 
   const handleStart = () => {
     engine.start()
   }
 
   const handleReset = () => {
+    setCurrentText(getRandomText())
     engine.reset()
   }
 
+  const [history, setHistory] = useState<RunRecord[]>([])
+  const runCountRef = useRef(0)
+  const idRef = useRef(1)
+  const lastPhaseRef = useRef(engine.phase)
+
+  useEffect(() => {
+    if (engine.phase === 'finished' && lastPhaseRef.current !== 'finished') {
+      runCountRef.current += 1
+      const record: RunRecord = {
+        id: idRef.current++,
+        index: runCountRef.current,
+        wpm: engine.wpm,
+        accuracy: engine.accuracy,
+        time: engine.timeString,
+      }
+      setHistory((prev) => [record, ...prev].slice(0, 5))
+    }
+    lastPhaseRef.current = engine.phase
+  }, [engine.phase, engine.wpm, engine.accuracy, engine.timeString])
+
   const nextChar =
-    engine.phase === 'typing' && engine.typed.length < SAMPLE_TEXT.length
-      ? SAMPLE_TEXT[engine.typed.length]
+    engine.phase === 'typing' && engine.typed.length < currentText.length
+      ? currentText[engine.typed.length]
       : null
 
   return (
@@ -62,15 +84,17 @@ function App() {
           speed={engine.phase === 'finished' ? `${engine.wpm} WPM` : '—'}
         />
 
-        <TextDisplay text={SAMPLE_TEXT} typed={engine.typed} textRef={textRef} />
+        <TextDisplay text={currentText} typed={engine.typed} textRef={textRef} />
 
         <InputArea
-          text={SAMPLE_TEXT}
+          text={currentText}
           value={engine.typed}
           disabled={engine.phase !== 'typing'}
           minHeight={textHeight}
           inputRef={inputRef}
           onChange={engine.handleChange}
+          onCompositionStart={engine.handleCompositionStart}
+          onCompositionEnd={engine.handleCompositionEnd}
         />
 
         <Controls
@@ -83,13 +107,7 @@ function App() {
           onReset={handleReset}
         />
 
-        {engine.phase === 'finished' && (
-          <ResultCard
-            wpm={engine.wpm}
-            accuracy={engine.accuracy}
-            onReset={handleReset}
-          />
-        )}
+        <ResultCard records={history} onReset={handleReset} />
 
         {!wide && (
           <VirtualKeyboard side="full" nextChar={nextChar} streak={engine.streak} />

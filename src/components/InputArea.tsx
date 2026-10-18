@@ -7,6 +7,8 @@ interface InputAreaProps {
   minHeight: number
   inputRef: RefObject<HTMLTextAreaElement | null>
   onChange: (value: string) => void
+  onCompositionStart?: () => void
+  onCompositionEnd?: () => void
 }
 
 export function InputArea({
@@ -16,6 +18,8 @@ export function InputArea({
   minHeight,
   inputRef,
   onChange,
+  onCompositionStart,
+  onCompositionEnd,
 }: InputAreaProps) {
   return (
     <section className="card">
@@ -44,6 +48,8 @@ export function InputArea({
           autoCorrect="off"
           autoComplete="off"
           onChange={(e) => onChange(e.target.value)}
+          onCompositionStart={onCompositionStart}
+          onCompositionEnd={onCompositionEnd ? () => onCompositionEnd() : undefined}
         />
       </div>
     </section>

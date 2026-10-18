@@ -200,8 +200,8 @@ button {
 
 .btn {
   font-family: var(--pixel);
-  font-size: 13px;
-  padding: 14px 30px;
+  font-size: 18px;
+  padding: 18px 36px;
   border: 3px solid var(--border);
   border-radius: var(--radius);
   background: var(--panel);
@@ -269,10 +269,75 @@ button {
   color: var(--text-muted);
 }
 
+.result-badge.is-empty {
+  color: var(--border);
+  opacity: 0.35;
+}
+
+.result-row.is-empty {
+  background: transparent;
+  border-style: dashed;
+  box-shadow: none;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
 .result-msg {
   margin: 0 0 18px;
   font-size: 16px;
   font-weight: 700;
+}
+
+/* 近五次数据 */
+.result-head,
+.result-row {
+  display: grid;
+  grid-template-columns: 3.6rem repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  align-items: center;
+  padding: 9px 10px;
+  border: 3px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.result-head {
+  background: transparent;
+  border: none;
+  padding: 0 10px 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.result-list {
+  list-style: none;
+  margin: 0 0 18px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.result-row {
+  background: var(--panel);
+  color: var(--text);
+}
+
+.result-row.is-latest {
+  background: var(--yellow);
+  box-shadow: 3px 3px 0 var(--border);
+}
+
+.result-order {
+  font-family: var(--pixel);
+  font-size: 10px;
+  color: var(--indigo);
+}
+
+.result-row > span:not(:first-child) {
+  text-align: center;
 }
 
 /* 模拟键盘 */
@@ -434,12 +499,29 @@ button {
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .btn {
+    font-size: 13px;
+    padding: 14px 20px;
+  }
+
   .app-title {
     font-size: 24px;
   }
 
   .result-badge {
     font-size: 40px;
+  }
+
+  .result-head,
+  .result-row {
+    grid-template-columns: 3rem repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    padding: 7px 6px;
+    font-size: 11px;
+  }
+
+  .result-order {
+    font-size: 9px;
   }
 
   .stat-value {

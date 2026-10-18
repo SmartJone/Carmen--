@@ -1,6 +1,13 @@
-interface ResultCardProps {
+export interface RunRecord {
+  id: number
+  index: number
   wpm: number
   accuracy: number
+  time: string
+}
+
+interface ResultCardProps {
+  records: RunRecord[]
   onReset: () => void
 }
 
@@ -11,16 +18,62 @@ function grade(wpm: number, accuracy: number) {
   return { rank: 'C', msg: '稳扎稳打，慢慢提速' }
 }
 
-export function ResultCard({ wpm, accuracy, onReset }: ResultCardProps) {
-  const g = grade(wpm, accuracy)
+const SLOT_COUNT = 5
+
+export function ResultCard({ records, onReset }: ResultCardProps) {
+  const latest = records[0]
+  const g = latest ? grade(latest.wpm, latest.accuracy) : null
+  const slots: (RunRecord | null)[] = [
+    ...records,
+    ...Array(Math.max(0, SLOT_COUNT - records.length)).fill(null),
+  ]
 
   return (
     <section className="card result-card">
-      <h2 className="section-title">本次结果</h2>
-      <div className={`result-badge rank-${g.rank}`}>{g.rank}</div>
-      <p className="result-msg">
-        {g.msg} · {wpm} WPM
-      </p>
+      <h2 className="section-title">近五次数据</h2>
+
+      {g && latest ? (
+        <>
+          <p className="result-msg">
+            {g.msg} · {latest.wpm} WPM · {latest.accuracy}%
+          </p>
+        </>
+      ) : (
+        <>
+          <p className="result-msg">完成一次练习后开始记录</p>
+        </>
+      )}
+
+      <div className="result-head">
+        <span>轮次</span>
+        <span>速度</span>
+        <span>准确率</span>
+        <span>用时</span>
+      </div>
+
+      <ul className="result-list">
+        {slots.map((r, i) => {
+          if (!r) {
+            return (
+              <li key={`empty-${i}`} className="result-row is-empty">
+                <span className="result-order">—</span>
+                <span>—</span>
+                <span>—</span>
+                <span>—</span>
+              </li>
+            )
+          }
+          return (
+            <li key={r.id} className={i === 0 ? 'result-row is-latest' : 'result-row'}>
+              <span className="result-order">第{r.index}次</span>
+              <span>{r.wpm} WPM</span>
+              <span>{r.accuracy}%</span>
+              <span>{r.time}</span>
+            </li>
+          )
+        })}
+      </ul>
+
       <button className="btn btn-primary" onClick={onReset}>
         再来一次
       </button>
