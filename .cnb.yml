@@ -1,0 +1,11 @@
+$:
+  vscode:
+    - docker:
+        build: .ide/Dockerfile
+      services:
+        - name: vscode
+          options:
+            onlyPreview: true
+            launch: node scripts/preview-server.mjs
+            daemon: true
+            keepAliveTimeout: 3600000
